@@ -38,9 +38,9 @@ public class SimpleRoute extends RouteBuilder {
 				.unmarshal(restReponse)
 				.process(process)
 				.convertBodyTo(String.class)
-				//the dynamic Router:  allows for a different process, depending on
-				//specific conditions, ie different types of records.
-				.dynamicRouter(method(DynamicRouter.class, "slip"))
+				//the loop
+				.loopDoWhile(simple("${header.hasnext}"))
+				.to("direct:router1")
 				.end();
 
 		//BLOCK 2:  allows for the next page to be processed.
