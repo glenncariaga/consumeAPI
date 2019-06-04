@@ -1,10 +1,13 @@
 package com.cognizant.routes;
 
 import org.apache.camel.Exchange;
-
+/*
+ * this is an alternative to a camel loop.  using specific conditions (in this case, 
+ * looking for the "hasNext" variable, keep repeating the route till there is no
+ * next
+ */
 public class DynamicRouter {
 	public String slip(Exchange exchange) {
-		System.out.println("DynamicRouter Page: "+exchange.getMessage().getHeader("pageCount"));
 		if(!(boolean) exchange.getIn().getHeader("hasNext")) {
 			return null;
 		}else {
