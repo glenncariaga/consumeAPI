@@ -17,24 +17,26 @@ public class SimpleRoute extends RouteBuilder {
 		Processor process = new GenerateList();
 
 		JacksonDataFormat restReponse = new JacksonDataFormat(Model.class);
-		String baseUrl = "http://localhost:7070/employees";
-		String sortStr = "?sort=+salary";
-		int pageSize = 2;
-		String pageSizeStr = "&pageSize=" + pageSize;
-		int pageNumber = 5;
-		String pageNumberStr = "&pageNumber=" + pageNumber;
-		String url = baseUrl + sortStr + pageSizeStr + pageNumberStr;
 
-		from("timer:startRoute?delay=20000")
+		from("timer://simpleTimer?repeatCount=1")
 		.setHeader(Exchange.HTTP_METHOD, simple("GET"))
-				.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
-				.to(url).unmarshal(restReponse)
+		.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+		.setHeader(Exchange.HTTP_QUERY, simple("?sort=+salary&pageSize=2&pageNumber=1"))
+				.to("http://localhost:7070/employees")
+				.unmarshal(restReponse)
 				.process(process)
-				.dynamicRouter(method(DynamicRouter.class, "slip")).end();
+				.convertBodyTo(String.class)
+				.dynamicRouter(method(DynamicRouter.class, "slip"))
+				.end();
 
 		from("direct:router1")
 //			.log("{nextUrl}}");
-				.to("{{nextUrl}}").setHeader(Exchange.HTTP_METHOD, simple("GET"))
-				.setHeader(Exchange.CONTENT_TYPE, constant("application/json")).unmarshal(restReponse).process(process);
+		.setHeader(Exchange.HTTP_METHOD, simple("GET"))
+		.setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+		.setHeader(Exchange.HTTP_QUERY, simple("?sort=+salary&pageSize=2&pageNumber=${header.pageNumber}"))
+				.to("http://localhost:7070/employees")
+				.unmarshal(restReponse)
+				.process(process)
+				.convertBodyTo(String.class);
 	}
 }
